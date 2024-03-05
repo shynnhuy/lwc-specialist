@@ -1,0 +1,26 @@
+<template>
+    <lightning-tabset variant="scoped">
+        <lightning-tab label="Gallery">
+            <template lwc:if={boats}>
+                <div class="slds-scrollable_y">
+                    <lightning-layout horizontal-align="center" multiple-rows>
+                        <template for:each={boats.data} for:item="boat">
+                            <lightning-layout-item key={boat.Id} padding="around-small" size="12" small-device-size="6"
+                                medium-device-size="4" large-device-size="3">
+                                <c-boat-tile boat={boat} selected-boat-id={boat.Id}
+                                    onboatselect={updateSelectedTile}></c-boat-tile>
+                            </lightning-layout-item>
+                        </template>
+                    </lightning-layout>
+                </div>
+            </template>
+            <template lwc:else>
+                <lightning-spinner alternative-text="Loading" variant="brand"></lightning-spinner>
+            </template>
+        </lightning-tab>
+        <lightning-tab label="Item Two" title="2nd tab extended title">
+            Two Content !
+        </lightning-tab>
+        <lightning-tab label="Item Three"> Three Content ! </lightning-tab>
+    </lightning-tabset>
+</template>
