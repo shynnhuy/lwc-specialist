@@ -11,4 +11,10 @@ public with sharing class BoatDataService {
 
         return Database.query(query);
     }
+    
+    @AuraEnabled(cacheable = true)
+    public static List<BoatType__c> getBoatTypes(){
+        return [SELECT Id, Name, OwnerId FROM BoatType__c];
+    }
+    
 }
