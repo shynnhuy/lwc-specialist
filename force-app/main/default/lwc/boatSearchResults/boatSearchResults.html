@@ -5,7 +5,7 @@
       <template lwc:if={boats}>
         <div class="slds-scrollable_y">
           <lightning-layout horizontal-align="center" multiple-rows>
-            <template for:each={boats.data} for:item="boat">
+            <template for:each={boats} for:item="boat">
               <lightning-layout-item
                 key={boat.Id}
                 padding="around-small"
@@ -33,13 +33,16 @@
     </lightning-tab>
     <lightning-tab label="Boat Editor">
       <lightning-datatable
+        key-field="Id"
         data={boats}
-        columns={colums}
+        columns={columns}
         onsave={handleSave}
         draft-values={draftValues}
         hide-checkbox-column
       ></lightning-datatable>
     </lightning-tab>
-    <lightning-tab label="Boats Near Me"> Three Content ! </lightning-tab>
+    <lightning-tab label="Boats Near Me">
+      <c-boats-near-me boat-type-id={boatTypeId}></c-boats-near-me>
+    </lightning-tab>
   </lightning-tabset>
 </template>

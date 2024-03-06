@@ -1,13 +1,15 @@
 public with sharing class BoatDataService {
   @AuraEnabled(cacheable=true)
   public static List<Boat__c> getBoats(String boatTypeId) {
-    String query = 'SELECT ' + 'Name, BoatType__c ' + 'FROM Boat__c';
+    String query = 'SELECT Name, Description__c, BoatType__c, Contact__r.Name, Price__c, Length__c, Picture__c, Geolocation__c FROM Boat__c';
 
     if (String.isNotBlank(boatTypeId)) {
       query += ' WHERE BoatType__c = :boatTypeId';
     }
 
-    return Database.query(query);
+    List<Boat__c> boats = Database.query(query);
+
+    return boats;
   }
 
   @AuraEnabled(cacheable=true)
@@ -19,12 +21,22 @@ public with sharing class BoatDataService {
   }
 
   @AuraEnabled(cacheable=true)
-  public static List<Boat__c> getBoatsByLocation(String boatTypeId) {
-    return [
-      SELECT Id, Name, OwnerId
-      FROM BoatType__c
-      WHERE BoatType__c = :boatTypeId
-    ];
+  public static List<Boat__c> getBoatsByLocation(
+    String boatTypeId,
+    Decimal longitude,
+    Decimal latitude
+  ) {
+    String query = 'SELECT Name, Description__c, BoatType__c, Contact__r.Name, Price__c, Length__c, Picture__c, Geolocation__c FROM Boat__c';
+
+    if (String.isNotBlank(boatTypeId)) {
+      query += ' WHERE BoatType__c = :boatTypeId';
+    }
+
+    query += ' ORDER BY DISTANCE(Geolocation__c, GEOLOCATION(:latitude, :longitude), \'mi\') LIMIT 10';
+
+    List<Boat__c> boats = Database.query(query);
+
+    return boats;
   }
 
   @AuraEnabled

@@ -3,6 +3,14 @@
     <apiVersion>59.0</apiVersion>
     <isExposed>true</isExposed>
     <targets>
+        <target>lightning__RecordPage</target>
         <target>lightning__AppPage</target>
     </targets>
+    <targetConfigs>
+        <targetConfig targets="lightning__RecordPage">
+            <objects>
+                <object>Boat__c</object>
+            </objects>
+        </targetConfig>
+    </targetConfigs>
 </LightningComponentBundle>

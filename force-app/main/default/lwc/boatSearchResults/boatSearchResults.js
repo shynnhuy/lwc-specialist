@@ -1,6 +1,6 @@
 import getBoats from "@salesforce/apex/BoatDataService.getBoats";
-import { LightningElement, track, wire } from "lwc";
-import { refetchApex } from "@salesforce/apex";
+import { LightningElement, api, track, wire } from "lwc";
+import { refreshApex } from "@salesforce/apex";
 import { MessageContext, publish } from "lightning/messageService";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 
@@ -8,10 +8,10 @@ import BOATMC from "@salesforce/messageChannel/BoatMessageChannel__c";
 import updateBoatList from "@salesforce/apex/BoatDataService.updateBoatList";
 
 const columns = [
-  { label: "Name", fieldName: "name", type: "text" },
+  { label: "Name", fieldName: "Name", editable: true },
   { label: "Length", fieldName: "Length__c", type: "number" },
   { label: "Price", fieldName: "Price__c", type: "currency" },
-  { label: "Description", fieldName: "Description__c", type: "text" }
+  { label: "Description", fieldName: "Description__c" }
 ];
 
 const SUCCESS_TITLE = "Success";
@@ -21,8 +21,8 @@ const ERROR_TITLE = "Error";
 const ERROR_VARIANT = "error";
 
 export default class BoatSearchResults extends LightningElement {
-  selectedBoatId;
-  boats = [];
+  @api selectedBoatId;
+  @track boats;
   boatTypeId = "";
   isLoading = false;
   columns = columns;
@@ -32,19 +32,20 @@ export default class BoatSearchResults extends LightningElement {
 
   @wire(getBoats, { boatTypeId: "$boatTypeId" })
   wireBoats({ data, error }) {
+    console.log("data, error", data, error);
     if (data) this.boats = data;
     else if (error) console.log("error", error);
   }
 
-  searchBoats(boatTypeId) {
+  @api searchBoats(boatTypeId) {
     this.isLoading = true;
     this.boatTypeId = boatTypeId;
     this.notifyLoading();
   }
 
   updateSelectedTile({ detail }) {
-    this.selectedBoatId = detail.boatId;
-    this.sendMessageService(this.selectedBoatId);
+    const selectedBoatId = detail.boatId;
+    this.sendMessageService(selectedBoatId);
   }
 
   sendMessageService(boatId) {
@@ -64,7 +65,7 @@ export default class BoatSearchResults extends LightningElement {
       });
       this.draftValues = [];
       this.dispatchEvent(toast);
-      await this.refetch();
+      await this.refresh();
     } catch (error) {
       console.log("error", error);
       const toast = new ShowToastEvent({
@@ -76,10 +77,12 @@ export default class BoatSearchResults extends LightningElement {
     }
   }
 
-  async refetch() {
+  @api async refresh() {
     this.isLoading = true;
-    await refetchApex();
+    this.notifyLoading(this.isLoading);
+    await refreshApex(this.boats);
     this.isLoading = false;
+    this.notifyLoading(this.isLoading);
   }
 
   notifyLoading(isLoading) {
