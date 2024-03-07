@@ -1,3 +1,4 @@
+/* eslint-disable @lwc/lwc/no-api-reassignments */
 import getBoats from "@salesforce/apex/BoatDataService.getBoats";
 import { LightningElement, api, track, wire } from "lwc";
 import { refreshApex } from "@salesforce/apex";
@@ -6,13 +7,6 @@ import { ShowToastEvent } from "lightning/platformShowToastEvent";
 
 import BOATMC from "@salesforce/messageChannel/BoatMessageChannel__c";
 import updateBoatList from "@salesforce/apex/BoatDataService.updateBoatList";
-
-const columns = [
-  { label: "Name", fieldName: "Name", editable: true },
-  { label: "Length", fieldName: "Length__c", type: "number" },
-  { label: "Price", fieldName: "Price__c", type: "currency" },
-  { label: "Description", fieldName: "Description__c" }
-];
 
 const SUCCESS_TITLE = "Success";
 const MESSAGE_SHIP_IT = "Ship it!";
@@ -23,15 +17,24 @@ const ERROR_VARIANT = "error";
 export default class BoatSearchResults extends LightningElement {
   @api selectedBoatId;
   @track boats;
+
   boatTypeId = "";
+
   isLoading = false;
-  columns = columns;
+
+  columns = [
+    { label: "Name", fieldName: "Name", editable: true },
+    { label: "Length", fieldName: "Length__c", type: "number" },
+    { label: "Price", fieldName: "Price__c", type: "currency" },
+    { label: "Description", fieldName: "Description__c" }
+  ];
+
   @track draftValues = [];
 
   @wire(MessageContext) messageContext;
 
   @wire(getBoats, { boatTypeId: "$boatTypeId" })
-  wireBoats({ data, error }) {
+  wiredBoats({ data, error }) {
     console.log("data, error", data, error);
     if (data) this.boats = data;
     else if (error) console.log("error", error);
@@ -43,9 +46,9 @@ export default class BoatSearchResults extends LightningElement {
     this.notifyLoading();
   }
 
-  updateSelectedTile({ detail }) {
-    const selectedBoatId = detail.boatId;
-    this.sendMessageService(selectedBoatId);
+  updateSelectedTile(event) {
+    this.selectedBoatId = event.detail.boatId;
+    this.sendMessageService(this.selectedBoatId);
   }
 
   sendMessageService(boatId) {
@@ -54,27 +57,32 @@ export default class BoatSearchResults extends LightningElement {
     publish(this.messageContext, BOATMC, payload);
   }
 
-  async handleSave(event) {
+  handleSave(event) {
+    // notify loading
     const updatedFields = event.detail.draftValues;
-    try {
-      await updateBoatList({ data: updatedFields });
-      const toast = new ShowToastEvent({
-        title: SUCCESS_TITLE,
-        message: MESSAGE_SHIP_IT,
-        variant: SUCCESS_VARIANT
+    // Update the records via Apex
+    updateBoatList({ data: updatedFields })
+      .then(() => {
+        const toast = new ShowToastEvent({
+          title: SUCCESS_TITLE,
+          message: MESSAGE_SHIP_IT,
+          variant: SUCCESS_VARIANT,
+        });
+        this.dispatchEvent(toast);
+        this.draftValues = [];
+        return this.refresh();
+      })
+      .catch(error => {
+        const toast = new ShowToastEvent({
+          title: ERROR_TITLE,
+          message: error.message,
+          variant: ERROR_VARIANT,
+        });
+        this.dispatchEvent(toast);
+      })
+      .finally(() => {
+
       });
-      this.draftValues = [];
-      this.dispatchEvent(toast);
-      await this.refresh();
-    } catch (error) {
-      console.log("error", error);
-      const toast = new ShowToastEvent({
-        title: ERROR_TITLE,
-        message: error.message,
-        variant: ERROR_VARIANT
-      });
-      this.dispatchEvent(toast);
-    }
   }
 
   @api async refresh() {
