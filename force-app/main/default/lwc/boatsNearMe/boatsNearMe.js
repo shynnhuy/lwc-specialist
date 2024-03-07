@@ -10,7 +10,7 @@ const ERROR_VARIANT = "error";
 export default class BoatsNearMe extends LightningElement {
   @api boatTypeId;
 
-  isRendered = false;
+  isRendered;
   isLoading = true;
   mapMarkers = [];
   latitude;
@@ -33,15 +33,15 @@ export default class BoatsNearMe extends LightningElement {
       });
       this.dispatchEvent(toast);
     }
+    this.isLoading = false
   }
 
   getLocationFromBrowser() {
     if (navigator.geolocation)
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const crd = pos.coords;
-          this.longitude = crd.longitude;
-          this.latitude = crd.latitude;
+        (position) => {
+          this.longitude = position.coords.longitude;
+          this.latitude = position.coords.latitude;
         },
         (err) => {
           console.warn(`ERROR(${err.code}): ${err.message}`);
@@ -59,8 +59,8 @@ export default class BoatsNearMe extends LightningElement {
     const newMarkers = JSON.parse(boatData).map((boat) => ({
       title: boat.Name,
       location: {
-        longitude: boat.Geolocation__c.longitude,
-        latitude: boat.Geolocation__c.latitude
+        Latitude: boat.Geolocation__Latitude__s,
+        Longitude: boat.Geolocation__Longitude__s
       }
     }));
     newMarkers.unshift({
