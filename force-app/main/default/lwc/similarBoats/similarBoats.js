@@ -1,35 +1,33 @@
-import { LightningElement, api, wire } from "lwc";
-import { NavigationMixin } from "lightning/navigation";
-import getSimilarBoats from "@salesforce/apex/BoatDataService.getSimilarBoats";
+import { api, LightningElement, wire } from 'lwc';
+import { NavigationMixin } from 'lightning/navigation'
+import getSimilarBoats from '@salesforce/apex/BoatDataService.getSimilarBoats';
 
-const BOAT_OBJECT = "Boat__c";
+const BOAT_OBJECT = 'Boat__c';
 
-// imports
-// import getSimilarBoats
-export default class SimilarBoats extends LightningElement {
+export default class SimilarBoats extends NavigationMixin(LightningElement) {
   // Private
+  currentBoat;
   relatedBoats;
   boatId;
   error;
 
-  // public
-  @api get recordId() {
-    // returns the boatId
+  @api
+  get recordId() {
     return this.boatId;
   }
   set recordId(value) {
     //sets boatId attribute
-    this.setAttribute("boatId", value);
+    this.setAttribute('boatId', value);
     //sets boatId assignment
     this.boatId = value;
   }
 
-  // public
-  @api similarBy;
+  @api
+  similarBy;
 
   // Wire custom Apex call, using the import named getSimilarBoats
   // Populates the relatedBoats list
-  @wire(getSimilarBoats, { boatId: "$boatId", similarBy: "$similarBy" })
+  @wire(getSimilarBoats, { boatId: '$boatId', similarBy: '$similarBy' })
   similarBoats({ error, data }) {
     if (data) {
       this.relatedBoats = data;
@@ -38,9 +36,11 @@ export default class SimilarBoats extends LightningElement {
       this.error = error;
     }
   }
+
   get getTitle() {
-    return "Similar boats by " + this.similarBy;
+    return 'Similar boats by ' + this.similarBy;
   }
+
   get noBoats() {
     return !(this.relatedBoats && this.relatedBoats.length > 0);
   }
@@ -48,12 +48,12 @@ export default class SimilarBoats extends LightningElement {
   // Navigate to record page
   openBoatDetailPage(event) {
     this[NavigationMixin.Navigate]({
-      type: "standard__recordPage",
+      type: 'standard__recordPage',
       attributes: {
         recordId: event.detail.boatId,
         objectApiName: BOAT_OBJECT,
-        actionName: "view"
-      }
+        actionName: 'view'
+      },
     });
   }
-}
+}  
